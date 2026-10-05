@@ -71,6 +71,17 @@ void puts(int x, int y, std::string_view str) {
   }
 }
 
+void puts_n(int x, int y, int n, std::string_view str) {
+  if (n > str.size() - 1)
+    return;
+  std::string d(1, 0);
+
+  for (int i = 0; i < n; i++) {
+    d[0] = str[i];
+    buffer.put(x + i, y, d);
+  }
+}
+
 namespace basic {
 int vec2itoIdx(int x, int y) { return x + y * screenExtent.width; }
 } // namespace basic

@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <cstdio>
 #include <iostream>
 #include <string>
 #include <terminal.hpp>
@@ -25,7 +24,7 @@ struct Order {
   std::vector<OrderItem> items;
 };
 
-const char *productCategoryStr[] = {"Makanan", "Minuman", "Dessert"};
+std::vector<std::string> productCategoryStr = {"Makanan", "Minuman", "Dessert"};
 
 std::vector<MenuItem> productItems = {
     {"Mi Ayam",
@@ -49,22 +48,46 @@ std::vector<MenuItem> productItems = {
      3002, static_cast<uint8_t>(ProductCategory::Dessert)}};
 
 int main(int argc, char *argv[]) {
-  for (auto &item : productItems) {
-    if (item.id >= 1000)
-      continue;
-    printf("%s\n", item.nama.c_str());
-  }
+  // for (auto &item : productItems) {
+  //   if (item.id >= 1000)
+  //     continue;
+  //   printf("%s\n", item.nama.c_str());
+  // }
 
   if (tui::init()) {
     std::cerr << "error init\n";
   }
   ui::header("Menu Restoran");
-  ui::box(0, 3, 16, 10);
-  tui::puts(2, 3, " Kategori ");
-  ui::box(16, 3, 24, 10);
-  tui::puts(19, 3, " Menu ");
-  ui::box(40, 3, 25, 10);
-  tui::puts(43, 3, " Detail ");
+  // ui::box(0, 3, 16, 10);
+  // tui::puts(2, 3, " Kategori ");
+  // ui::box(16, 3, 24, 10);
+  // tui::puts(19, 3, " Menu ");
+  // ui::box(40, 3, 25, 10);
+  // tui::puts(43, 3, " Detail ");
+  ui::View viewKategori(0, 3, 16, 10, " Kategori ");
+  viewKategori.render();
+
+  ui::ListProperty listProp;
+  listProp.margin.top = 2;
+  listProp.margin.left = 1;
+  listProp.marker.glyph = ">";
+  listProp.marker.gap = 2;
+  listProp.marker.selectedElement = 0;
+
+  for (int i = 0; i < productCategoryStr.size(); i++)
+    ui::list(viewKategori, i, productCategoryStr.at(i).c_str(), listProp);
+
+  ui::View viewMenu(16, 3, 24, 10, " Menu ");
+  viewMenu.render();
+
+  listProp.margin.left = 3;
+  listProp.margin.top = 2;
+  for (int i = 0; i < 3; i++)
+    ui::list(viewMenu, i, productItems[i].nama.c_str(), listProp);
+
+  ui::View viewDetail(40, 3, 25, 10, " Detail ");
+  viewDetail.render();
+
   ui::footer("Status: N/A | Total: Rp 15.000");
 
   tui::render();
