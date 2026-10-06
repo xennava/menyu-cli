@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 
 namespace ui {
 extern void box(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -20,7 +21,22 @@ struct Padding {
 
 using Margin = Padding;
 
+class View;
+
+namespace view {
+extern uint8_t idCtr;
+extern uint8_t activeID;
+extern uint8_t defaultActiveID;
+extern std::unordered_map<int, View *> viewRef;
+void makeUniqueActiveView();
+extern void toggleActiveView();
+extern void stepActiveView(int bipolar);
+} // namespace view
+
 class View {
+protected:
+  bool hasInit = false;
+
 private:
   struct {
     std::string str;
@@ -40,25 +56,57 @@ private:
     bool title : 1 = true;
   } modes;
 
-  // uint8_t uid;
+  uint8_t uid = 0;
   void initContent(vec2i x) { measurement.padding.all(1); }
+  void init() {
+    if (hasInit == false) {
+      measurement.padding.all(1);
+      uid = view::idCtr;
+      // view::viewRef.emplace_back(this);
+      view::viewRef.emplace(uid, this);
+      if (view::defaultActiveID == uid) {
+        makeDefaultActiveView();
+      }
+      view::idCtr++;
+      hasInit = true;
+    }
+  }
 
 public:
   struct {
     bool activeView : 1 = false;
   } state;
+
   View(int x, int y, int w, int h, std::string_view title)
       : measurement({{}, x, y, w, h}) {
 
-    measurement.padding.all(1);
-    this->title.str.assign(title);
+    if (hasInit == false) {
+      this->title.str.assign(title);
+      init();
+    }
   }
+
   View(int x, int y, Extent ext, std::string_view title,
        Padding pad = {0, 0, 0, 0})
       : measurement(pad, x, y, ext.width, ext.height) {
 
-    measurement.padding.all(1);
-    this->title.str.assign(title);
+    if (hasInit == false) {
+      init();
+      this->title.str.assign(title);
+    }
+  }
+
+  ~View() {
+    if (hasInit == false)
+      return;
+    if (view::viewRef.find(uid) != view::viewRef.end()) {
+      view::viewRef.erase(uid);
+    }
+  }
+  void makeDefaultActiveView() {
+    state.activeView = 1;
+    view::defaultActiveID = this->uid;
+    view::makeUniqueActiveView();
   }
 
   void setTitle(std::string_view title, Alignment aln = Alignment::LEFT) {
@@ -89,6 +137,7 @@ public:
       tui::puts(measurement.x + 1, measurement.y, title.str);
     }
   }
+  int getID() { return uid; }
 };
 
 struct ListProperty {
@@ -115,8 +164,9 @@ struct ListProperty {
     }
   } modes;
   Margin margin = {0, 0, 0, 0};
-  uint8_t uid;
 };
+
+namespace view {}
 
 // modes:
 //  0x0 : plain

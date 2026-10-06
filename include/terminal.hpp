@@ -66,8 +66,10 @@ public:
       output.append(v.glyph);
     }
   }
+  void clear() { cells.assign(cells.size(), Cell{}); };
 };
 
+extern int getch();
 extern Buffer buffer;
 extern bool hasInit;
 extern bool init(const uint16_t w = 65, const uint16_t h = 16);
@@ -77,5 +79,7 @@ extern void puts(int x, int y, std::string_view str);
 extern void puts(std::string &str);
 extern void render();
 extern void show();
+extern void clearScreen();
+extern void end();
 
 } // namespace tui

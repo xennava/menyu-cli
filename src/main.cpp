@@ -1,8 +1,10 @@
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <terminal.hpp>
 #include <ui.hpp>
+#include <unistd.h>
 #include <vector>
 
 enum class ProductCategory : uint8_t { NA = 0, Makanan, Minuman, Dessert };
@@ -57,40 +59,58 @@ int main(int argc, char *argv[]) {
   if (tui::init()) {
     std::cerr << "error init\n";
   }
-  ui::header("Menu Restoran");
-  // ui::box(0, 3, 16, 10);
-  // tui::puts(2, 3, " Kategori ");
-  // ui::box(16, 3, 24, 10);
-  // tui::puts(19, 3, " Menu ");
-  // ui::box(40, 3, 25, 10);
-  // tui::puts(43, 3, " Detail ");
+
   ui::View viewKategori(0, 3, 16, 10, " Kategori ");
-  viewKategori.render();
+  ui::View viewMenu(16, 3, 24, 10, " Menu ");
+  ui::View viewDetail(40, 3, 25, 10, " Detail ");
 
   ui::ListProperty listProp;
-  listProp.margin.top = 2;
-  listProp.margin.left = 1;
-  listProp.marker.glyph = ">";
-  listProp.marker.gap = 2;
-  listProp.marker.selectedElement = 0;
 
-  for (int i = 0; i < productCategoryStr.size(); i++)
-    ui::list(viewKategori, i, productCategoryStr.at(i).c_str(), listProp);
+  int ch;
+  bool isRunning = true;
+  while (isRunning) {
+    tui::clearScreen();
 
-  ui::View viewMenu(16, 3, 24, 10, " Menu ");
-  viewMenu.render();
+    ch = tui::getch();
+    if (ch != -1) {
+      if (ch == 'q') {
+        isRunning = false;
+      }
+      if (ch == '\t') {
+        ui::view::stepActiveView(1);
+      }
+    }
 
-  listProp.margin.left = 3;
-  listProp.margin.top = 2;
-  for (int i = 0; i < 3; i++)
-    ui::list(viewMenu, i, productItems[i].nama.c_str(), listProp);
+    ui::header("Menu Restoran");
+    viewKategori.render();
 
-  ui::View viewDetail(40, 3, 25, 10, " Detail ");
-  viewDetail.render();
+    listProp.margin.top = 2;
+    listProp.margin.left = 1;
+    listProp.marker.glyph = ">";
+    listProp.marker.gap = 2;
+    listProp.marker.selectedElement = 0;
 
-  ui::footer("Status: N/A | Total: Rp 15.000");
+    for (int i = 0; i < productCategoryStr.size(); i++)
+      ui::list(viewKategori, i, productCategoryStr.at(i).c_str(), listProp);
 
-  tui::render();
-  tui::show();
+    viewMenu.render();
+
+    listProp.margin.left = 3;
+    listProp.margin.top = 2;
+    listProp.marker.gap = 3;
+    for (int i = 0; i < 3; i++)
+      ui::list(viewMenu, i, productItems[i].nama.c_str(), listProp);
+
+    viewDetail.render();
+
+    ui::footer("Status: N/A | Total: Rp 15.000");
+
+    tui::render();
+    tui::show();
+  }
+  for (auto &c : ui::view::viewRef) {
+    printf("#%d\n", c.second->getID());
+  }
+  tui::end();
   return 0;
 }

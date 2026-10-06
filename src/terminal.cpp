@@ -1,10 +1,17 @@
 #include <cstdint>
 #include <cstdio>
+#include <poll.h>
 #include <string>
 #include <string_view>
 #include <terminal.hpp>
+#include <termios.h>
 #include <type.hpp>
+#include <unistd.h>
 #include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace tui {
 Extent screenExtent = {65 * 16, 65, 16};
@@ -12,6 +19,47 @@ Buffer buffer;
 std::string displayOutput;
 Modes modes;
 bool hasInit = false;
+struct pollfd fds[1];
+
+int getch() {
+  int ret = poll(fds, 1, 100);
+
+  if (ret > 0) {
+    // poll mendeteksi ada input yang siap dibaca!
+    if (fds[0].revents & POLLIN) {
+      char ch;
+      read(0, &ch, 1);
+      return ch;
+    }
+  }
+  return -1;
+}
+void setTerminalMode(int enableRaw) {
+#ifdef _WIN32
+  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  CONSOLE_CURSOR_INFO cursorInfo;
+  GetConsoleCursorInfo(hOut, &cursorInfo);
+  cursorInfo.bVisible = visible;
+  SetConsoleCursorInfo(hOut, &cursorInfo);
+#else
+  struct termios t;
+  tcgetattr(0, &t);
+
+  if (enableRaw) {
+    t.c_lflag &= ~(ICANON | ECHO);
+    t.c_cc[VMIN] = 0;
+    t.c_cc[VTIME] = 0;
+    printf("\033[?25l");
+  } else {
+    t.c_lflag |= (ICANON | ECHO);
+    t.c_cc[VMIN] = 1;
+    t.c_cc[VTIME] = 0;
+    printf("\033[?25h");
+  }
+
+  tcsetattr(0, TCSANOW, &t);
+#endif
+}
 
 // Error return true, no error return false;
 // default width = 65, height = 16
@@ -19,9 +67,15 @@ bool hasInit = false;
 bool init(const uint16_t w, const uint16_t h) {
   if (w < 65 || h < 16)
     return true;
+
+  fds[0].fd = 0;
+  fds[0].events = POLLIN;
+
   screenExtent = {1, static_cast<uint16_t>(w + 1), h};
   screenExtent.size = screenExtent.height * screenExtent.width;
   buffer.resize(screenExtent);
+  setTerminalMode(1);
+  printf("\033[2J");
   hasInit = true;
   return false;
 }
@@ -47,6 +101,13 @@ void render() {
     }
     displayOutput.append(v.glyph);
   }
+}
+
+void clearScreen() {
+  printf("\033[H");
+  buffer.clear();
+  displayOutput.clear();
+  displayOutput.shrink_to_fit();
 }
 
 void show() {
@@ -81,6 +142,8 @@ void puts_n(int x, int y, int n, std::string_view str) {
     buffer.put(x + i, y, d);
   }
 }
+
+void end() { setTerminalMode(0); }
 
 namespace basic {
 int vec2itoIdx(int x, int y) { return x + y * screenExtent.width; }

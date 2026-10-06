@@ -29,6 +29,46 @@ void box(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
   }
 }
 
+namespace view {
+uint8_t idCtr = 0;
+uint8_t activeID = 0;
+uint8_t defaultActiveID = 0;
+std::unordered_map<int, View *> viewRef;
+void makeUniqueActiveView() {
+  for (const auto &v : viewRef) {
+    if (v.second->getID() != defaultActiveID) {
+      v.second->state.activeView = 0;
+    }
+  }
+}
+void toggleActiveView() {
+  viewRef[activeID]->state.activeView =
+      viewRef[activeID]->state.activeView ? 0 : 1;
+}
+void stepActiveView(int bipolar) {
+  if (idCtr < 1) {
+    return;
+  }
+  if (bipolar == 0)
+    return;
+  toggleActiveView();
+
+  if (bipolar < 0 && activeID == 0) {
+    activeID = idCtr;
+    goto end;
+  }
+  if (bipolar != 0) {
+    if (activeID == idCtr - 1 && bipolar == 1)
+      activeID = 0;
+    else
+      activeID += bipolar;
+  }
+
+end:
+  toggleActiveView();
+}
+} // namespace view
+
 void list(View &v, int &i, std::string_view str, ListProperty &lp) {
 
   vec2i xorg = v.getContentOrigin();
@@ -38,12 +78,12 @@ void list(View &v, int &i, std::string_view str, ListProperty &lp) {
   ext.width -= lp.margin.right;
   if (v.state.activeView) {
     if (lp.modes.autoMarkAll || lp.modes.autoMarkSelected) {
-      xorg.x += lp.marker.gap;
-      ext.width -= lp.marker.gap;
-      tui::put(v.getContentOrigin().x,
-               v.getContentOrigin().y +
+      tui::put(xorg.x,
+               xorg.y +
                    (lp.modes.autoMarkSelected ? lp.marker.selectedElement : i),
                lp.marker.glyph.data());
+      xorg.x += lp.marker.gap + 1;
+      ext.width -= lp.marker.gap - 1;
     }
   }
   int intersection = str.size() - 1;
@@ -66,11 +106,10 @@ void list(View &v, int &i, std::string_view str, uint8_t selectedElement,
   vec2i xorg = v.getContentOrigin();
   Extent ext = v.getContentExtent();
   if (modes == 0x1 || modes == 0x2) {
+    tui::put(xorg.x, xorg.y + (modes == 0x2 ? selectedElement : i),
+             marker.data());
     xorg.x += 2;
     ext.width -= 2;
-    tui::put(v.getContentOrigin().x,
-             v.getContentOrigin().y + (modes == 0x2 ? selectedElement : i),
-             marker.data());
   }
   int intersection = str.size() - 1;
   int line = 0;
