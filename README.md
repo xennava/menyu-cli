@@ -24,7 +24,6 @@ dan minuman pada restoran melalui antarmuka berbasis terminal.
 - Menentukan jumlah pesanan
 - Menampilkan daftar pesanan
 - Menghitung subtotal dan total pembayaran
-- Validasi input pengguna
 
 ## Requirements
 
@@ -71,22 +70,22 @@ cmake --build build
 ## Menu Overview
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│                 MENU PEMESANAN RESTORAN                      │
-├──────────────┬───────────────────────┬───────────────────────┤
-│              │                       │                       │
-│  KATEGORI    │       MENU            │      DETAIL           │
-│              │                       │                       │
-│ > Makanan    │  Nasi Goreng          │  Nasi Goreng          │
-│   Minuman    │  Ayam Geprek          │  ─────────────        │
-│   Dessert    │  Mie Goreng           │  Rp15.000             │
-│              │                       │                       │
-│              │                       │  Jumlah: [-] 1 [+]    │
-│              │                       │                       │
-│              │                       │  [ Tambah Pesanan ]   │
-├──────────────┴───────────────────────┴───────────────────────┤
-│ Status: 1 item | Total: Rp15.000           [ Lihat Pesanan ] │
-└──────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                         Menu Restoran                         │
+└───────────────────────────────────────────────────────────────┘
+┌ Kategori ────┐┌ Menu ────────────────┐┌ Detail ───────────────┐
+│              ││                      ││                       │
+│              ││                      ││                       │
+│ >  Makanan   ││   Mi Ayam            ││                       │
+│    Minuman   ││   Bakso              ││                       │
+│    Dessert   ││   Nasi Goreng        ││                       │
+│              ││                      ││                       │
+│              ││                      ││                       │
+│              ││                      ││                       │
+└──────────────┘└──────────────────────┘└───────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│  Status: N/A | Total: Rp 15.000                               │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ## Notes
