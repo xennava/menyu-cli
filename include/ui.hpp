@@ -24,13 +24,15 @@ using Margin = Padding;
 class View;
 
 namespace view {
-extern uint8_t idCtr;
+
+extern Counter<uint8_t> idCtr;
 extern uint8_t activeID;
 extern uint8_t defaultActiveID;
 extern std::unordered_map<int, View *> viewRef;
-void makeUniqueActiveView();
+extern void makeUniqueActiveView();
 extern void toggleActiveView();
 extern void stepActiveView(int bipolar);
+
 } // namespace view
 
 class View {
@@ -61,13 +63,12 @@ private:
   void init() {
     if (hasInit == false) {
       measurement.padding.all(1);
-      uid = view::idCtr;
-      // view::viewRef.emplace_back(this);
+      uid = view::idCtr.getCtr();
       view::viewRef.emplace(uid, this);
       if (view::defaultActiveID == uid) {
         makeDefaultActiveView();
       }
-      view::idCtr++;
+      view::idCtr.increment();
       hasInit = true;
     }
   }
@@ -80,20 +81,16 @@ public:
   View(int x, int y, int w, int h, std::string_view title)
       : measurement({{}, x, y, w, h}) {
 
-    if (hasInit == false) {
-      this->title.str.assign(title);
-      init();
-    }
+    this->title.str.assign(title);
+    init();
   }
 
   View(int x, int y, Extent ext, std::string_view title,
        Padding pad = {0, 0, 0, 0})
       : measurement(pad, x, y, ext.width, ext.height) {
 
-    if (hasInit == false) {
-      init();
-      this->title.str.assign(title);
-    }
+    init();
+    this->title.str.assign(title);
   }
 
   ~View() {
@@ -117,15 +114,16 @@ public:
   void setPadding(int top, int right, int bottom, int left) {
     measurement.padding = {top, right, bottom, left};
   }
+
   void setPadding(Padding pad) { measurement.padding = pad; }
 
-  Padding getPadding() { return measurement.padding; }
-  vec2i getOrigin() { return {measurement.x, measurement.y}; }
-  vec2i getContentOrigin() {
+  const Padding &getPadding() { return measurement.padding; }
+  const vec2i getOrigin() { return {measurement.x, measurement.y}; }
+  const vec2i getContentOrigin() {
     return {measurement.x + measurement.padding.left,
             measurement.y + measurement.padding.top};
   }
-  Extent getContentExtent() {
+  const Extent getContentExtent() {
     return {.width = static_cast<int>(measurement.w - getContentOrigin().x -
                                       measurement.padding.right),
             .height = static_cast<int>(measurement.h - getContentOrigin().y -
@@ -137,7 +135,7 @@ public:
       tui::puts(measurement.x + 1, measurement.y, title.str);
     }
   }
-  int getID() { return uid; }
+  const int getID() { return uid; }
 };
 
 struct ListProperty {
@@ -172,8 +170,6 @@ namespace view {}
 //  0x0 : plain
 //  0x1 : With Auto Marker to all element
 //  0x2 : Auto marker to selected element
-extern void list(View &v, int &i, std::string_view str, uint8_t selectedElement,
-                 uint8_t modes = 0x2, std::string_view marker = ">");
 extern void list(View &v, int &i, std::string_view str, ListProperty &lp);
 extern void header(std::string_view str);
 extern void footer(std::string_view str);

@@ -7,7 +7,6 @@
 #include <termios.h>
 #include <type.hpp>
 #include <unistd.h>
-#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -61,9 +60,7 @@ void setTerminalMode(int enableRaw) {
 #endif
 }
 
-// Error return true, no error return false;
-// default width = 65, height = 16
-// hasInit to ensure true init
+// Return true if error, false otherwise.
 bool init(const uint16_t w, const uint16_t h) {
   if (w < 65 || h < 16)
     return true;
@@ -71,22 +68,24 @@ bool init(const uint16_t w, const uint16_t h) {
   fds[0].fd = 0;
   fds[0].events = POLLIN;
 
+  setTerminalMode(1);
+  setvbuf(stdout, NULL, _IONBF, 0);
+
   screenExtent = {1, static_cast<uint16_t>(w + 1), h};
   screenExtent.size = screenExtent.height * screenExtent.width;
   buffer.resize(screenExtent);
-  setTerminalMode(1);
+
   printf("\033[2J");
   hasInit = true;
   return false;
 }
 
 void render() {
-  std::vector<tui::Cell> &cells = buffer.Cells();
-  if (cells.size() < 1)
+  if (buffer.size() < 1)
     return;
   size_t endLineCounter = screenExtent.width - 1;
   for (size_t i = 0; i < screenExtent.size; i++) {
-    Cell &v = cells[i];
+    Cell &v = buffer.data()[i];
     if (v.continuation) {
       printf("%lu: continuation: %d\n", i, v.continuation);
       displayOutput.append(" ");
@@ -125,7 +124,7 @@ void puts(int x, int y, std::string &str) {
   }
 }
 void puts(int x, int y, std::string_view str) {
-  std::string d(1, 0);
+  std::string d = " ";
   for (int i = 0; i < str.size(); i++) {
     d[0] = str[i];
     buffer.put(x + i, y, d);

@@ -42,7 +42,6 @@ public:
     Cell &d = cells[idx];
     d.glyph = glyph;
     int w = termui::display_width(glyph);
-    // printf("[PUT Debug] %s\n", glyph.c_str());
     d.width = w;
     while (w > 1) {
       if (++idx >= screenExtent.size)
@@ -53,8 +52,8 @@ public:
     }
   };
   void resize(Extent &ext) { cells.resize(ext.size); }
-  Cell *data() { return cells.data(); }
-  auto &Cells() { return cells; }
+  Cell *const data() { return cells.data(); }
+  const int size() { return cells.size(); }
 
   void render(std::string &output) {
     if (cells.size() < 1)

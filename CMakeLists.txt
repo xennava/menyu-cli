@@ -14,7 +14,7 @@ file(GLOB SRCS CONFIGURE_DEPENDS src/*.cpp)
 
 add_link_options(-fuse-ld=lld)
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_compile_options(-fsanitize=address,leak -Wall -Werror)
+  add_compile_options(-fsanitize=address,leak,undefined -Wall -Werror)
   add_link_options(-fsanitize=address,leak)
 elseif(CMAKE_BUILD_TYPE STREQUAL Release)
   add_compile_options(-O2 -s)
