@@ -78,19 +78,19 @@ public:
     bool activeView : 1 = false;
   } state;
 
-  View(int x, int y, int w, int h, std::string_view title)
+  View(int x, int y, int w, int h, std::string_view legend)
       : measurement({{}, x, y, w, h}) {
 
-    this->title.str.assign(title);
+    this->title.str.assign(legend);
     init();
   }
 
-  View(int x, int y, Extent ext, std::string_view title,
+  View(int x, int y, Extent ext, std::string_view legend,
        Padding pad = {0, 0, 0, 0})
       : measurement(pad, x, y, ext.width, ext.height) {
 
     init();
-    this->title.str.assign(title);
+    this->title.str.assign(legend);
   }
 
   ~View() {

@@ -1,10 +1,7 @@
-#include <cstdint>
-#include <cstdio>
+#include "input.hpp"
 #include <iostream>
 #include <string>
-#include <terminal.hpp>
 #include <ui.hpp>
-#include <unistd.h>
 #include <vector>
 
 enum class ProductCategory : uint8_t { NA = 0, Makanan, Minuman, Dessert };
@@ -50,13 +47,7 @@ std::vector<MenuItem> productItems = {
      3002, static_cast<uint8_t>(ProductCategory::Dessert)}};
 
 int main(int argc, char *argv[]) {
-  // for (auto &item : productItems) {
-  //   if (item.id >= 1000)
-  //     continue;
-  //   printf("%s\n", item.nama.c_str());
-  // }
-
-  if (tui::init()) {
+  if (tui::init(65, 18)) {
     std::cerr << "error init\n";
   }
 
@@ -66,18 +57,14 @@ int main(int argc, char *argv[]) {
 
   ui::ListProperty listProp;
 
-  int ch;
   bool isRunning = true;
   while (isRunning) {
     tui::clearScreen();
 
-    ch = tui::getch();
-    if (ch != -1) {
-      if (ch == 'q') {
+    int in = tui::input::getch();
+    if (in == 0) {
+      if (tui::input::inputBuffer[0] == 'q') {
         isRunning = false;
-      }
-      if (ch == '\t') {
-        ui::view::stepActiveView(1);
       }
     }
 
@@ -105,12 +92,16 @@ int main(int argc, char *argv[]) {
 
     ui::footer("Status: N/A | Total: Rp 15.000");
 
+    inputParser();
+
     tui::render();
     tui::show();
   }
-  for (auto &c : ui::view::viewRef) {
+#ifndef NDEBUG
+  for (const auto &c : ui::view::viewRef) {
     printf("#%d\n", c.second->getID());
   }
+#endif
   tui::end();
   return 0;
 }

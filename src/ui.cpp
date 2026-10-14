@@ -107,7 +107,7 @@ void header(std::string_view str) {
   tui::puts((tui::screenExtent.width - str.size()) >> 1, 1, str);
 }
 void footer(std::string_view str) {
-  box(0, tui::screenExtent.height - 3, tui::screenExtent.width - 1, 3);
+  box(0, 13, tui::screenExtent.width - 1, 3);
   tui::puts(3, 14, str);
 }
 } // namespace ui

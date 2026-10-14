@@ -68,7 +68,6 @@ public:
   void clear() { cells.assign(cells.size(), Cell{}); };
 };
 
-extern int getch();
 extern Buffer buffer;
 extern bool hasInit;
 extern bool init(const uint16_t w = 65, const uint16_t h = 16);

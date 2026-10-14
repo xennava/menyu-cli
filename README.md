@@ -37,7 +37,7 @@ dan minuman pada restoran melalui antarmuka berbasis terminal.
 
 ### Runtime
 
-- Minimal Terminal Size: 64 columns × 16 rows
+- Minimal Terminal Size: 64 columns × 18 rows
 
 ## Build n Run
 
@@ -86,7 +86,27 @@ cmake --build build
 ┌───────────────────────────────────────────────────────────────┐
 │  Status: N/A | Total: Rp 15.000                               │
 └───────────────────────────────────────────────────────────────┘
+
+
 ```
+
+## TODO
+
+- Improve input, InputState.
+- Improve input agar bisa menerima input arrow.
+- Bikin kolom input identitas pemesan.
+- Bikin fungsi penyimpan struk dalam bentuk file data mentah dan
+visualnya dalam bentuk text atau gambar.
+- Bikin sistem state input bebas dan input yang dikontrol app. Input bebas
+digunakan untuk memasukkan nama, mencari Kategori atau Menu yang tersedia.
+- Tambahkan detail stok pada tiap menu.
+- Tambahkan warna untuk kejelasan.
+- Tambahin fitur settings.
+- Tambahin label-label shortcut keys di bagian footer.
+- Improve viewDetail.
+- Tambahin text container.
+- Tambahin fitur text clipping dan text wrap.
+- Improve footer.
 
 ## Notes
 
