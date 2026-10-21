@@ -1,10 +1,6 @@
-#include "terminal.hpp"
-#include "type.hpp"
-#include <cstddef>
+#include <core/terminal.hpp>
+#include <core/type.hpp>
 #include <cstdint>
-#include <cstdio>
-#include <string>
-#include <string_view>
 #include <ui.hpp>
 
 namespace ui {
@@ -34,6 +30,7 @@ Counter<uint8_t> idCtr;
 uint8_t activeID = 0;
 uint8_t defaultActiveID = 0;
 std::unordered_map<int, View *> viewRef;
+const View *getActiveView() { return viewRef.at(activeID); }
 void makeUniqueActiveView() {
   for (const auto &v : viewRef) {
     if (v.second->getID() != defaultActiveID) {
@@ -69,8 +66,26 @@ end:
 }
 } // namespace view
 
-void list(View &v, int &i, std::string_view str, ListProperty &lp) {
+void View::init() {
+  if (hasInit == false) {
+    measurement.padding.all(1);
+    uid = view::idCtr.getCtr();
+    view::viewRef.emplace(uid, this);
+    if (view::defaultActiveID == uid) {
+      makeDefaultActiveView();
+    }
+    view::idCtr.increment();
+    hasInit = true;
+  }
+}
 
+void View::makeDefaultActiveView() {
+  state.activeView = 1;
+  view::defaultActiveID = this->uid;
+  view::makeUniqueActiveView();
+}
+
+void list(View &v, int &i, std::string_view str, ListProperty &lp) {
   vec2i xorg = v.getContentOrigin();
   Extent ext = v.getContentExtent();
   xorg.x += lp.margin.left;
@@ -79,26 +94,40 @@ void list(View &v, int &i, std::string_view str, ListProperty &lp) {
   if (v.state.activeView) {
     if (lp.modes.autoMarkAll || lp.modes.autoMarkSelected) {
       tui::put(xorg.x,
-               xorg.y +
-                   (lp.modes.autoMarkSelected ? lp.marker.selectedElement : i),
+               xorg.y + (lp.modes.autoMarkSelected
+                             ? (lp.marker.selectedElement < lp.maxElement
+                                    ? lp.marker.selectedElement
+                                    : lp.maxElement - 1)
+                             : i),
                lp.marker.glyph.data());
       xorg.x += lp.marker.gap + 1;
       ext.width -= lp.marker.gap - 1;
     }
   }
-  int intersection = str.size() - 1;
+  int len = str.size();
   int line = 0;
+  int startIdx = 0;
+  while (len > ext.width) {
+    len -= ext.width;
+    tui::puts(xorg.x, xorg.y + i + line, str.substr(startIdx, ext.width));
+    line++;
+    if (line > ext.height)
+      return;
+    startIdx += ext.width - 1;
+  }
+  if (line > ext.height)
+    return;
+  tui::puts(xorg.x, xorg.y + i + line,
+            str.substr(startIdx, str.size() - startIdx));
   // printf("x, y: %d, %d | content x, y: %d, %d | marked x, y: %d, %d\n",
   //        v.getOrigin().x, v.getOrigin().y, v.getContentOrigin().x,
   //        v.getContentOrigin().y, xorg.x, xorg.y);
   // printf("%s\n", str.substr(0, 1).data());
+}
 
-  do {
-    intersection -= ext.width;
-    tui::puts(xorg.x, xorg.y + i + line, str.data());
-    line++;
-    // strStart = intersection;
-  } while (intersection > v.getContentExtent().width);
+void lineSeparator(vec2i orgPosRef, Extent extRef, int width) {
+  for (int i = 0; i < width; i++)
+    tui::put(orgPosRef.x + i, orgPosRef.y + extRef.height + 1, "─");
 }
 
 void header(std::string_view str) {

@@ -1,12 +1,11 @@
 #pragma once
 
 #include "termui.hpp"
+#include "type.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <string>
-#include <type.hpp>
-#include <vector>
 
 namespace tui {
 struct Cell {

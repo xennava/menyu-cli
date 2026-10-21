@@ -1,11 +1,10 @@
 #pragma once
 
-#include "terminal.hpp"
-#include "type.hpp"
+#include "core/type.hpp"
+#include <core/terminal.hpp>
 #include <cstdint>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 
 namespace ui {
 extern void box(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -25,9 +24,7 @@ class View;
 
 namespace view {
 
-extern Counter<uint8_t> idCtr;
-extern uint8_t activeID;
-extern uint8_t defaultActiveID;
+extern const View *getActiveView();
 extern std::unordered_map<int, View *> viewRef;
 extern void makeUniqueActiveView();
 extern void toggleActiveView();
@@ -60,51 +57,36 @@ private:
 
   uint8_t uid = 0;
   void initContent(vec2i x) { measurement.padding.all(1); }
-  void init() {
-    if (hasInit == false) {
-      measurement.padding.all(1);
-      uid = view::idCtr.getCtr();
-      view::viewRef.emplace(uid, this);
-      if (view::defaultActiveID == uid) {
-        makeDefaultActiveView();
-      }
-      view::idCtr.increment();
-      hasInit = true;
-    }
-  }
 
 public:
   struct {
     bool activeView : 1 = false;
   } state;
 
-  View(int x, int y, int w, int h, std::string_view legend)
+  View(int x, int y, int w, int h, std::string_view legend = "")
       : measurement({{}, x, y, w, h}) {
 
+    if (legend.empty()) {
+      modes.title = 0;
+      return;
+    }
     this->title.str.assign(legend);
-    init();
   }
 
   View(int x, int y, Extent ext, std::string_view legend,
        Padding pad = {0, 0, 0, 0})
       : measurement(pad, x, y, ext.width, ext.height) {
 
-    init();
+    if (legend.empty()) {
+      modes.title = 0;
+      return;
+    }
     this->title.str.assign(legend);
   }
 
-  ~View() {
-    if (hasInit == false)
-      return;
-    if (view::viewRef.find(uid) != view::viewRef.end()) {
-      view::viewRef.erase(uid);
-    }
-  }
-  void makeDefaultActiveView() {
-    state.activeView = 1;
-    view::defaultActiveID = this->uid;
-    view::makeUniqueActiveView();
-  }
+  ~View() {}
+  void init();
+  void makeDefaultActiveView();
 
   void setTitle(std::string_view title, Alignment aln = Alignment::LEFT) {
     this->title.str.assign(title);
@@ -124,10 +106,9 @@ public:
             measurement.y + measurement.padding.top};
   }
   const Extent getContentExtent() {
-    return {.width = static_cast<int>(measurement.w - getContentOrigin().x -
-                                      measurement.padding.right),
-            .height = static_cast<int>(measurement.h - getContentOrigin().y -
-                                       measurement.padding.bottom)};
+    return {
+        .width = static_cast<int>(measurement.w - measurement.padding.right),
+        .height = static_cast<int>(measurement.h - measurement.padding.bottom)};
   }
   void render() {
     box(measurement.x, measurement.y, measurement.w, measurement.h);
@@ -136,6 +117,112 @@ public:
     }
   }
   const int getID() { return uid; }
+};
+
+class Text {
+protected:
+  bool isWrap = 0;
+  vec2i originPos;
+  vec2i contentPos;
+  Extent viewContentExtent;
+  Padding padding = {0, 0, 0, 0};
+  bool centered = false;
+  vec2i calculatedPos;
+
+private:
+  void wrapText(std::string &s) {
+    int len = s.size();
+    int line = 0;
+    int startIdx = 0;
+    while (len > viewContentExtent.width) {
+      len -= viewContentExtent.width;
+      tui::puts(contentPos.x, contentPos.y + line,
+                s.substr(startIdx, viewContentExtent.width));
+      line++;
+      if (line > viewContentExtent.height)
+        return;
+      startIdx += viewContentExtent.width - 1;
+    }
+    if (line > viewContentExtent.height)
+      return;
+    tui::puts(contentPos.x, contentPos.y + line,
+              s.substr(startIdx, s.size() - startIdx));
+  }
+
+  std::string str;
+
+public:
+  Text(View &v) {
+    originPos = v.getContentOrigin();
+    contentPos = originPos;
+    viewContentExtent = v.getContentExtent();
+  }
+  Text(View &v, Padding p) {
+    originPos = v.getContentOrigin();
+    contentPos = {.x = originPos.x + p.left, .y = originPos.y - p.bottom};
+    padding = p;
+    viewContentExtent = v.getContentExtent();
+  }
+
+  void setClipToText() { isWrap = false; }
+
+  const vec2i &getOriginPos() { return originPos; }
+  Extent getExtent() {
+    Extent e;
+    e.height = 1;
+    e.width = viewContentExtent.width;
+    return e;
+  }
+  Text &setPadding(Padding p) {
+    padding = p;
+    return *this;
+  }
+
+  Text &center() {
+    if (!centered) {
+      contentPos.x =
+          originPos.x + ((viewContentExtent.width - str.size()) >> 1);
+
+      centered = true;
+    }
+    return *this;
+  }
+  Text &add(std::string_view s) {
+    str += s;
+    return *this;
+  }
+
+  Text &assign(std::string_view s) {
+    if (str.compare(s)) {
+      str.assign(s);
+      centered = 0;
+    }
+    return *this;
+  }
+
+  Text &setOriginPos(vec2i pos) {
+    originPos = pos;
+    contentPos = pos;
+    calculatedPos = pos;
+    return *this;
+  }
+
+  void render() {
+    if (isWrap) {
+      wrapText(str);
+      return;
+    }
+
+    contentPos.y = originPos.y + padding.top;
+    // contentPos.x = calculatedPos.x + padding.left;
+
+    int n = viewContentExtent.width;
+    if (str.size() > n) {
+      n -= 3 + padding.right;
+      tui::puts(contentPos.x + n - 1, contentPos.y, "...");
+    }
+    tui::puts(contentPos.x + padding.left, contentPos.y, str.substr(0, n));
+  }
 };
 
 struct ListProperty {
@@ -162,9 +249,11 @@ struct ListProperty {
     }
   } modes;
   Margin margin = {0, 0, 0, 0};
+  uint16_t maxElement = 0;
 };
 
-namespace view {}
+extern void lineSeparator(View &v, Text &t);
+extern void lineSeparator(vec2i orgPosRef, Extent extRef, int width);
 
 // modes:
 //  0x0 : plain

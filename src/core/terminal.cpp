@@ -1,11 +1,11 @@
+#include <core/input.hpp>
+#include <core/terminal.hpp>
+#include <core/type.hpp>
 #include <cstdint>
 #include <cstdio>
-#include <input.hpp>
 #include <string>
 #include <string_view>
-#include <terminal.hpp>
 #include <termios.h>
-#include <type.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -49,8 +49,6 @@ void setTerminalMode(int enableRaw) {
 bool init(const uint16_t w, const uint16_t h) {
   if (w < 65 || h < 16)
     return true;
-
-  tui::input::init();
 
   setTerminalMode(1);
   setvbuf(stdout, NULL, _IONBF, 0);

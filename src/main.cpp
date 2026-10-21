@@ -1,98 +1,66 @@
+#include "appState.hpp"
 #include "input.hpp"
+#include <core/input.hpp>
+#include <core/terminal.hpp>
 #include <iostream>
-#include <string>
+#include <mainMenu.hpp>
 #include <ui.hpp>
-#include <vector>
 
-enum class ProductCategory : uint8_t { NA = 0, Makanan, Minuman, Dessert };
-
-struct MenuItem {
-  std::string nama;
-  std::string description;
-  uint32_t price;
-  uint16_t id;
-  uint8_t category;
-};
-
-struct OrderItem {
-  uint16_t menuId;
-  uint16_t quantity;
-};
-
-struct Order {
-  std::vector<OrderItem> items;
-};
-
-std::vector<std::string> productCategoryStr = {"Makanan", "Minuman", "Dessert"};
-
-std::vector<MenuItem> productItems = {
-    {"Mi Ayam",
-     "Mi dengan ayam suwir, telur, sayuran, dan bumbu berkuah hangat.", 6000, 0,
-     static_cast<uint8_t>(ProductCategory::Makanan)},
-    {"Bakso", "Bakso daging sapi dan telur di dalamnya.", 16000, 1,
-     static_cast<uint8_t>(ProductCategory::Makanan)},
-    {"Nasi Goreng", "Nasi goreng dengan telur dan ayam suwir.", 12000, 2,
-     static_cast<uint8_t>(ProductCategory::Makanan)},
-    {"Teh Manis", "Teh hangat atau es yang manis dan segar.", 2500, 1000,
-     static_cast<uint8_t>(ProductCategory::Minuman)},
-    {"Jeruk Manis", "Jeruk hangat atau es tidak kecut yang manis dan segar.",
-     3000, 1001, static_cast<uint8_t>(ProductCategory::Minuman)},
-    {"Kopi ABC", "Kopi panas sachet ABC", 3000, 1002,
-     static_cast<uint8_t>(ProductCategory::Minuman)},
-    {"Pisang Goreng", "Tidak lembek tidak keras, pas, 1 porsi 7 potong pisang.",
-     5000, 3000, static_cast<uint8_t>(ProductCategory::Dessert)},
-    {"Puding Coklat", "Puding kenyal dan manis.", 6500, 3001,
-     static_cast<uint8_t>(ProductCategory::Dessert)},
-    {"Es Krim", "Es Krim dengan varian coklat, vanilla, durian, dll.", 3000,
-     3002, static_cast<uint8_t>(ProductCategory::Dessert)}};
+void orderInput() {
+  if (tui::Input.getKeys()[83]) {
+    appState.orderPage = false;
+  }
+}
 
 int main(int argc, char *argv[]) {
   if (tui::init(65, 18)) {
     std::cerr << "error init\n";
   }
 
-  ui::View viewKategori(0, 3, 16, 10, " Kategori ");
-  ui::View viewMenu(16, 3, 24, 10, " Menu ");
-  ui::View viewDetail(40, 3, 25, 10, " Detail ");
+  mainMenuInit();
 
-  ui::ListProperty listProp;
+  ui::View orderPage(0, 0, tui::screenExtent.width - 1,
+                     tui::screenExtent.height);
+
+  auto searchItem = [&](int i) {
+    for (auto &v : productItems)
+      if (v.id == order.items[i].menuId)
+        return v;
+    return MenuItem();
+  };
 
   bool isRunning = true;
   while (isRunning) {
     tui::clearScreen();
 
-    int in = tui::input::getch();
-    if (in == 0) {
-      if (tui::input::inputBuffer[0] == 'q') {
+    if (appInput.process()) {
+      if (appInput.getKey().q) {
         isRunning = false;
       }
+
+      if (!appState.orderPage)
+        mainMenuInput();
+
+      if (appInput.getKey().s) {
+        appState.orderPage = true;
+      }
+
+      orderInput();
     }
 
-    ui::header("Menu Restoran");
-    viewKategori.render();
+    if (appState.orderPage) {
+      listProp.margin.left = 3;
+      listProp.margin.top = 2;
+      listProp.marker.gap = 3;
+      listProp.maxElement = order.items.size();
+      listProp.marker.selectedElement = 0;
+      for (int i = 0; i < order.items.size(); i++)
+        ui::list(orderPage, i, searchItem(i).nama, listProp);
 
-    listProp.margin.top = 2;
-    listProp.margin.left = 1;
-    listProp.marker.glyph = ">";
-    listProp.marker.gap = 2;
-    listProp.marker.selectedElement = 0;
-
-    for (int i = 0; i < productCategoryStr.size(); i++)
-      ui::list(viewKategori, i, productCategoryStr.at(i).c_str(), listProp);
-
-    viewMenu.render();
-
-    listProp.margin.left = 3;
-    listProp.margin.top = 2;
-    listProp.marker.gap = 3;
-    for (int i = 0; i < 3; i++)
-      ui::list(viewMenu, i, productItems[i].nama.c_str(), listProp);
-
-    viewDetail.render();
-
-    ui::footer("Status: N/A | Total: Rp 15.000");
-
-    inputParser();
+      orderPage.render();
+    } else {
+      mainMenu();
+    }
 
     tui::render();
     tui::show();

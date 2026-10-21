@@ -1,4 +1,4 @@
-#include "termui.hpp"
+#include <core/termui.hpp>
 #include <utf8proc.h>
 
 namespace termui {

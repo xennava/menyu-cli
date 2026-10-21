@@ -1,9 +1,12 @@
 #pragma once
 
+#include <core/input.hpp>
 #include <cstdint>
-namespace tui {
-struct InputSystem {
-  union {
+
+class AppInput {
+protected:
+  const bool *keys = nullptr;
+  union Key {
     uint16_t raw;
     struct {
       uint16_t NONE : 1 = false;
@@ -23,16 +26,59 @@ struct InputSystem {
       uint16_t ArrowRight : 1;
       uint16_t ArrowDown : 1;
     };
+  } key;
+
+  void alphabetParse() {
+    if (keys['q'] || keys['Q'])
+      key.q = 1;
+    if (keys['w'] || keys['W'])
+      key.w = 1;
+    if (keys['e'] || keys['E'])
+      key.e = 1;
+    if (keys['s'] || keys['S'])
+      key.s = 1;
   };
+
+private:
+  void inputParser() {
+    if (keys == nullptr || keys == NULL)
+      return;
+
+    key.raw = 0;
+
+    int c = tui::Input.getBaseInput();
+    if (c >= 'A' && c <= 'Z')
+      key.shift = 1;
+    if (c == 27) {
+      key.alt = true;
+      if (keys[91]) {
+        if (keys[65])
+          key.ArrowUp = true;
+        if (keys[66])
+          key.ArrowDown = true;
+        if (keys[67])
+          key.ArrowRight = true;
+        if (keys[68])
+          key.ArrowLeft = true;
+      }
+    }
+    if (c == 61)
+      key.plus = true;
+    if (c == 45)
+      key.minus = true;
+    if (c == 9)
+      key.tab = true;
+    if (c == 10)
+      key.enter = true;
+
+    alphabetParse();
+  }
+
+public:
+  AppInput() { keys = tui::Input.getKeys(); }
+
+  const bool process();
+  const Key &getKey() { return key; }
 };
 
-extern InputSystem Input;
-
-namespace input {
-extern char inputBuffer[16];
-extern void init();
-extern int getch();
-} // namespace input
-} // namespace tui
-
-extern void inputParser();
+extern AppInput appInput;
