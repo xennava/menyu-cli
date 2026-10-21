@@ -1,7 +1,7 @@
-# Menu Pemesanan Restoran
+# Pemesanan Menu Restoran
 
 <!--toc:start-->
-- [Menu Pemesanan Restoran](#menu-pemesanan-restoran)
+- [Pemesanan Menu Restoran](#pemesanan-menu-restoran)
   - [Features](#features)
   - [Requirements](#requirements)
     - [Development](#development)
@@ -11,6 +11,7 @@
     - [Windows](#windows)
   - [Project Structure](#project-structure)
   - [Menu Overview](#menu-overview)
+  - [TODO](#todo)
   - [Notes](#notes)
 <!--toc:end-->
 
