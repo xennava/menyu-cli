@@ -34,7 +34,20 @@ private:
   std::vector<Cell> cells;
 
 public:
-  void put(int x, int y, std::string glyph) {
+  void put(int idx, std::string_view glyph) {
+    Cell &d = cells[idx];
+    d.glyph = glyph;
+    int w = termui::display_width(glyph);
+    d.width = w;
+    while (w > 1) {
+      if (++idx >= screenExtent.size)
+        return;
+      d = cells[idx];
+      d.continuation = true;
+      w--;
+    }
+  }
+  void put(int x, int y, std::string_view glyph) {
     int idx = basic::vec2itoIdx(x, y);
     if (idx >= screenExtent.size)
       return;
@@ -59,8 +72,10 @@ public:
       return;
     for (size_t i = 0; i < screenExtent.size; i++) {
       Cell &v = cells[i];
-      if (v.continuation)
+      if (v.continuation) {
+        output.append(" ");
         continue;
+      }
       output.append(v.glyph);
     }
   }
@@ -70,10 +85,11 @@ public:
 extern Buffer buffer;
 extern bool hasInit;
 extern bool init(const uint16_t w = 65, const uint16_t h = 16);
-extern void put(int x, int y, std::string glyph);
+extern void moveCursor(int x, int y);
+extern void put(int x, int y, std::string_view glyph);
 extern void puts(int x, int y, std::string &str);
 extern void puts(int x, int y, std::string_view str);
-extern void puts(std::string &str);
+extern void puts(std::string_view str);
 extern void render();
 extern void show();
 extern void clearScreen();

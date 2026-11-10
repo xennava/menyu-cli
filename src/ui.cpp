@@ -27,7 +27,7 @@ void box(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 
 namespace view {
 Counter<uint8_t> idCtr;
-uint8_t activeID = 0;
+int8_t activeID = 0;
 uint8_t defaultActiveID = 0;
 std::unordered_map<int, View *> viewRef;
 const View *getActiveView() { return viewRef.at(activeID); }
@@ -39,6 +39,8 @@ void makeUniqueActiveView() {
   }
 }
 void toggleActiveView() {
+  if (activeID < 0)
+    activeID = 0;
   viewRef[activeID]->state.activeView =
       viewRef[activeID]->state.activeView ? 0 : 1;
 }
@@ -51,7 +53,7 @@ void stepActiveView(int bipolar) {
   toggleActiveView();
 
   if (bipolar < 0 && activeID == 0) {
-    activeID = idCtr.getCtr();
+    activeID = viewRef.size() - 1;
     goto end;
   }
   if (bipolar != 0) {
@@ -137,6 +139,6 @@ void header(std::string_view str) {
 }
 void footer(std::string_view str) {
   box(0, 13, tui::screenExtent.width - 1, 3);
-  tui::puts(3, 14, str);
+  tui::puts((tui::screenExtent.width - str.size()) >> 1, 14, str);
 }
 } // namespace ui

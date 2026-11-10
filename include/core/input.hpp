@@ -1,9 +1,7 @@
 #pragma once
 
-#include "terminal.hpp"
 #include <cstring>
 #include <poll.h>
-#include <string>
 #include <unistd.h>
 
 namespace tui {
@@ -49,11 +47,6 @@ public:
     const int &ret = getch();
     if (ret) {
       evaluate();
-      std::string s("Input: ");
-      for (const char v : terminalInputBuffer) {
-        s += std::to_string(v);
-      }
-      puts(0, 16, s);
     }
     return ret;
   }

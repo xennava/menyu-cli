@@ -1,36 +1,39 @@
-#include "appState.hpp"
+#include "app.hpp"
+#include "fileLock.hpp"
 #include "input.hpp"
-#include <core/input.hpp>
-#include <core/terminal.hpp>
+#include <chrono>
+#include <cstdint>
 #include <iostream>
-#include <mainMenu.hpp>
-#include <ui.hpp>
-
-void orderInput() {
-  if (tui::Input.getKeys()[83]) {
-    appState.orderPage = false;
-  }
-}
+#include <pages.hpp>
+#include <ratio>
 
 int main(int argc, char *argv[]) {
+  FileLock fl;
+  if (!fl.acquire()) {
+    return 1;
+  }
+
   if (tui::init(65, 18)) {
     std::cerr << "error init\n";
   }
 
-  mainMenuInit();
-
-  ui::View orderPage(0, 0, tui::screenExtent.width - 1,
-                     tui::screenExtent.height);
-
-  auto searchItem = [&](int i) {
-    for (auto &v : productItems)
-      if (v.id == order.items[i].menuId)
-        return v;
-    return MenuItem();
-  };
+  pagesInit();
 
   bool isRunning = true;
+  auto timeNow = std::chrono::steady_clock::now();
+
+  uint64_t accumulator = 0;
+
   while (isRunning) {
+    auto timeLast = std::chrono::steady_clock::now();
+    auto microDuration =
+        std::chrono::duration_cast<std::chrono::duration<uint64_t, std::micro>>(
+            timeLast - timeNow);
+    app::time::dt_msec = microDuration.count();
+    timeNow = timeLast;
+
+    accumulator += app::time::dt_msec;
+
     tui::clearScreen();
 
     if (appInput.process()) {
@@ -38,28 +41,12 @@ int main(int argc, char *argv[]) {
         isRunning = false;
       }
 
-      if (!appState.orderPage)
-        mainMenuInput();
-
-      if (appInput.getKey().s) {
-        appState.orderPage = true;
-      }
-
-      orderInput();
+      pagesInput();
     }
 
-    if (appState.orderPage) {
-      listProp.margin.left = 3;
-      listProp.margin.top = 2;
-      listProp.marker.gap = 3;
-      listProp.maxElement = order.items.size();
-      listProp.marker.selectedElement = 0;
-      for (int i = 0; i < order.items.size(); i++)
-        ui::list(orderPage, i, searchItem(i).nama, listProp);
-
-      orderPage.render();
-    } else {
-      mainMenu();
+    if (accumulator >= app::time::targetFrameTime) {
+      pagesUpdate();
+      accumulator -= app::time::targetFrameTime;
     }
 
     tui::render();
