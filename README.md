@@ -13,7 +13,7 @@
   - [Menu Overview](#menu-overview)
   - [Order Overview](#order-overview)
   - [TODO](#todo)
-  - [Known Limitations](#known-limitations)
+  - [Current Limitations](#current-limitations)
   - [Notes](#notes)
 <!--toc:end-->
 
@@ -118,16 +118,18 @@ Checkout [x] Keluar [q]
 
 ## TODO
 
-- Bikin fungsi penyimpan struk dalam bentuk file data mentah dan
-visualnya dalam bentuk text atau gambar.
-- Tambahkan warna untuk kejelasan.
-- Tambahin fitur settings.
-- support multiple pages and multiple orders.
+- [ ] **Receipt Export System**: Implement a feature to save order receipts both as raw data and visual formats (plain text or image exports).
+- [ ] **Terminal Color Customization**: Integrate ANSI color codes or styling libraries into the TUI (Terminal User Interface) to enhance clarity and readability.
+- [ ] **Application Settings**: Add a customizable settings menu to configure user preferences, paths, and interface behavior.
+- [ ] **Multi-Page & Layout Navigation**: Upgrade the terminal interface to support multi-page views, allowing smoother transitions between menus.
+- [ ] **Real-Time Server Synchronization**: Implement back-end server synchronization to fetch dynamic restaurant data and submit live orders.
 
-## Known Limitations
+## Current Limitations
 
 - **Single Order Only**: The application currently supports only one active order per session.
-- Single Pages Only.
+- **Single Page Only**: The application features a single interface layout and does not include separate page navigation.
+- **Standalone Mode & Mock Data**: The application currently runs in standalone mode using embedded demo product data. Changes to the actual restaurant catalog are not reflected since real-time server synchronization is not yet implemented.
+- **No Write Access for Products**: This client application is strictly for viewing menus and placing orders; it does not have the capability or authority to modify product data.
 
 ## Notes
 
