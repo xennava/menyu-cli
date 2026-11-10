@@ -11,7 +11,9 @@
     - [Windows](#windows)
   - [Project Structure](#project-structure)
   - [Menu Overview](#menu-overview)
+  - [Order Overview](#order-overview)
   - [TODO](#todo)
+  - [Known Limitations](#known-limitations)
   - [Notes](#notes)
 <!--toc:end-->
 
@@ -80,37 +82,52 @@ cmake --build build
 │ >  Makanan   ││   Mi Ayam            ││───────────────────────│
 │    Minuman   ││   Bakso              ││        Rp.6000        │
 │    Dessert   ││   Nasi Goreng        ││                       │
-│              ││                      ││   Jumlah: [-] 0 [+]   │
+│              ││                      ││   Jumlah: [-] 1 [+]   │
 │              ││                      ││                       │
 │              ││                      ││ Tambah Pesanan [Enter]│
 └──────────────┘└──────────────────────┘└───────────────────────┘
 ┌───────────────────────────────────────────────────────────────┐
-│  Status: 0 Item | Total: Rp.0  Lihat Pesanan [s]              │
+│        Status: 0 Item | Total: Rp.0  Lihat Pesanan [x]        │
 └───────────────────────────────────────────────────────────────┘
-Input: 113000000000000000                                        
-← →                                                          
-#2
-#1
-#0
+Checkout [x] Keluar [q]                                          
+← →                                                              
+```
+
+## Order Overview
+
+```text
+┌──────────────────────────────────────────────────────────────┐ 
+│Nomor Pesanan: 0 (Mohon diingat...)                           │ 
+│                                                              │ 
+│   Puding Coklat           Rp.6500                        x1  │ 
+│   Teh Manis               Rp.2500                        x1  │ 
+│   Mi Ayam                 Rp.6000                        x1  │ 
+│                                                              │ 
+│                                                              │ 
+│                                                              │ 
+│                                                              │ 
+│                                                              │ 
+│                                                              │ 
+│                                                              │ 
+│                                                              │ 
+│Kembali [x]              3 | Rp.15000               Pesan! [w]│ 
+└──────────────────────────────────────────────────────────────┘ 
+> Menunggu pesanan..                                             
+
 ```
 
 ## TODO
 
-- Improve input, InputState.
-- Improve input agar bisa menerima input arrow.
-- Bikin kolom input identitas pemesan.
 - Bikin fungsi penyimpan struk dalam bentuk file data mentah dan
 visualnya dalam bentuk text atau gambar.
-- Bikin sistem state input bebas dan input yang dikontrol app. Input bebas
-digunakan untuk memasukkan nama, mencari Kategori atau Menu yang tersedia.
-- Tambahkan detail stok pada tiap menu.
 - Tambahkan warna untuk kejelasan.
 - Tambahin fitur settings.
-- Tambahin label-label shortcut keys di bagian footer.
-- Improve viewDetail.
-- Tambahin text container.
-- Tambahin fitur text clipping dan text wrap.
-- Improve footer.
+- support multiple pages and multiple orders.
+
+## Known Limitations
+
+- **Single Order Only**: The application currently supports only one active order per session.
+- Single Pages Only.
 
 ## Notes
 
