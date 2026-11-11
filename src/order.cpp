@@ -37,10 +37,14 @@ int upsertOrder(const uint16_t &currentMenuId, int qty) {
   if (it != order.items.end()) {
     const int bqty = it->second.quantity;
     it->second.quantity = qty;
+    if (qty == 0) {
+      order.items.erase(it);
+    }
     return qty - bqty;
   } else {
-    order.items[currentMenuId] =
-        OrderItem{currentMenuId, static_cast<uint16_t>(qty)};
+    if (qty > 0)
+      order.items[currentMenuId] =
+          OrderItem{currentMenuId, static_cast<uint16_t>(qty)};
     return qty;
   }
   return 0;
@@ -74,8 +78,8 @@ void Order::updatePrice() {
 
 void setQuantity(int8_t bipolar) {
   qty -= bipolar;
-  if (qty < 1)
-    qty = 1;
+  if (qty < 0)
+    qty = 0;
 }
 
 const int &getQuantity() { return qty; }

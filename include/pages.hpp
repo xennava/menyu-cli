@@ -28,9 +28,6 @@ extern void pagesInput();
 
 extern void pagesUpdate();
 
-extern void orderPage();
-extern void orderInput();
-
 extern ui::ListProperty listProp;
 
 extern std::vector<MenuItem> productItems;
