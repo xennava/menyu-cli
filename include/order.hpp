@@ -109,7 +109,6 @@ public:
 
 extern Order order;
 
-extern int upsertOrder(const uint16_t &currentMenuId, int qty);
 extern void setQuantity(int8_t bipolar);
 extern MenuItem &getCurrentItem();
 extern const int &getQuantity();

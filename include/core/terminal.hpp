@@ -34,13 +34,13 @@ private:
   std::vector<Cell> cells;
 
 public:
-  void put(int idx, std::string_view glyph) {
+  void put(std::size_t idx, std::string_view glyph) {
     Cell &d = cells[idx];
     d.glyph = glyph;
     int w = termui::display_width(glyph);
     d.width = w;
     while (w > 1) {
-      if (++idx >= screenExtent.size)
+      if (++idx >= static_cast<int>(screenExtent.size))
         return;
       d = cells[idx];
       d.continuation = true;
@@ -49,7 +49,7 @@ public:
   }
   void put(int x, int y, std::string_view glyph) {
     int idx = basic::vec2itoIdx(x, y);
-    if (idx >= screenExtent.size)
+    if (idx >= static_cast<int>(screenExtent.size))
       return;
     Cell &d = cells[idx];
     d.glyph = glyph;

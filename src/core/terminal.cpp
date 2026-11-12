@@ -1,14 +1,16 @@
 #include <core/input.hpp>
 #include <core/terminal.hpp>
 #include <core/type.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <string>
 #include <string_view>
-#include <termios.h>
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <termios.h>
 #endif
 
 namespace tui {
@@ -22,11 +24,14 @@ int pointerIndex = 0;
 
 void setTerminalMode(int enableRaw) {
 #ifdef _WIN32
+  (void)enableRaw;
   HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
   CONSOLE_CURSOR_INFO cursorInfo;
   GetConsoleCursorInfo(hOut, &cursorInfo);
-  cursorInfo.bVisible = visible;
+  cursorInfo.bVisible = FALSE;
   SetConsoleCursorInfo(hOut, &cursorInfo);
+  SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
 #else
   struct termios t;
   tcgetattr(0, &t);
@@ -90,62 +95,66 @@ void clearScreen() {
   printf("\033[H");
   buffer.clear();
   displayOutput.clear();
-  displayOutput.shrink_to_fit();
 }
 
 void show() {
   if (displayOutput.size() < 1)
     return;
   fwrite(displayOutput.data(), 1, displayOutput.size(), stdout);
+  fflush(stdout);
 }
 
 void moveCursor(int x, int y) { pointerIndex = basic::vec2itoIdx(x - 1, y); }
 
 void put(int x, int y, std::string_view glyph) {
+  if (glyph.empty())
+    return;
   buffer.put(x, y, std::string(glyph));
   pointerIndex = basic::vec2itoIdx(x, y);
 }
 void puts(std::string_view str) {
+  if (str.empty())
+    return;
   std::string d(1, 0);
-  for (int i = 0; i < str.size(); i++) {
+  for (std::size_t i = 0; i < str.size(); i++) {
     d[0] = str[i];
     pointerIndex++;
     buffer.put(pointerIndex, d);
   }
 }
 void puts(int x, int y, std::string &str) {
-  if (str.size() < 1) {
+  if (str.empty() || str.size() < 1) {
     pointerIndex = basic::vec2itoIdx(x, y);
     return;
   }
   std::string d = " ";
-  for (int i = 0; i < str.size(); i++) {
+  for (std::size_t i = 0; i < str.size(); i++) {
     d[0] = str[i];
     put(x + i, y, d);
   }
 }
 
 void puts(int x, int y, std::string_view str) {
-  if (str.size() < 1) {
+  if (str.empty() || str.size() < 1) {
     pointerIndex = basic::vec2itoIdx(x, y);
     return;
   }
   std::string d = " ";
-  for (int i = 0; i < str.size(); i++) {
+  for (std::size_t i = 0; i < str.size(); i++) {
     d[0] = str[i];
     put(x + i, y, d);
   }
 }
 
 void puts_n(int x, int y, int n, std::string_view str) {
-  if (n > str.size() - 1)
+  if (str.empty() || n > str.size() - 1)
     return;
   if (basic::vec2itoIdx(x, y) + n > screenExtent.size)
     return;
 
   std::string d(1, 0);
 
-  for (int i = 0; i < n; i++) {
+  for (std::size_t i = 0; i < n; i++) {
     d[0] = str[i];
     put(x + i, y, d);
   }

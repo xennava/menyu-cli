@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
-project(menu CXX)
 
-set(CMAKE_BUILD_TYPE Debug)
+project(menu LANGUAGES C CXX)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -10,30 +10,83 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_UNITY_BUILD ON)
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 0)
 
-file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS src/*.cpp)
-
-add_link_options(-fuse-ld=lld)
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_compile_options(-fsanitize=address,leak,undefined -Wall -Werror)
-  add_link_options(-fsanitize=address,leak)
-elseif(CMAKE_BUILD_TYPE STREQUAL Release)
-  add_compile_options(-O2 -s)
-  add_link_options(-s)
-endif()
+file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
+)
 
 add_executable(menu ${SRCS})
 
 target_include_directories(menu
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
+        "${PROJECT_SOURCE_DIR}/include"
 )
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+
+  target_compile_options(menu PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+
+  # Windows / MinGW compatibility
+  if(WIN32)
+    target_compile_options(menu PRIVATE
+            -Wno-error=sign-compare
+        )
+    target_link_options(menu PRIVATE
+        -static
+        -static-libgcc
+        -static-libstdc++
+    )
+
+  endif()
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+    # Sanitizers: Linux native only
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+      target_compile_options(menu PRIVATE
+                -fsanitize=address,undefined
+                -fno-omit-frame-pointer
+            )
+
+      target_link_options(menu PRIVATE
+                -fsanitize=address,undefined
+            )
+    endif()
+
+  elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+
+    target_link_options(menu PRIVATE
+            -s
+        )
+
+  endif()
+
+endif()
+
+# Use LLD when available on native Linux
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_program(LLD_LINKER ld.lld)
+
+  if(LLD_LINKER AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_link_options(menu PRIVATE
+            -fuse-ld=lld
+        )
+  endif()
+endif()
+
+# ------------------------------------------------------------
+# utf8proc
+# ------------------------------------------------------------
 
 set(UTF8PROC_INSTALL OFF CACHE BOOL "" FORCE)
 set(UTF8PROC_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(
-    ${PROJECT_SOURCE_DIR}/third_party/utf8proc-master
-    ${CMAKE_BINARY_DIR}/utf8proc
+    "${PROJECT_SOURCE_DIR}/third_party/utf8proc-master"
+    "${CMAKE_BINARY_DIR}/utf8proc"
 )
 
 target_link_libraries(menu
@@ -41,32 +94,31 @@ target_link_libraries(menu
         utf8proc::utf8proc
 )
 
+# ------------------------------------------------------------
+# Platform Dependencies
+# ------------------------------------------------------------
+
 if(WIN32)
 
-  # --------------------------------------------------------
   # Windows - PDCurses
-  # --------------------------------------------------------
 
   set(PDCURSES_DIR
-        ${PROJECT_SOURCE_DIR}/third_party/pdcurses
+        "${PROJECT_SOURCE_DIR}/third_party/pdcurses"
     )
 
-  target_include_directories(menu
+  target_include_directories(menu BEFORE
         PRIVATE
-            ${PDCURSES_DIR}/include
+            "${PDCURSES_DIR}/include"
     )
 
   target_link_libraries(menu
         PRIVATE
-            ${PDCURSES_DIR}/lib/pdcurses.a
+            "${PDCURSES_DIR}/lib/pdcurses.a"
     )
-
 
 elseif(UNIX)
 
-  # --------------------------------------------------------
-  # Linux / MacOS - ncurses
-  # --------------------------------------------------------
+  # Linux / macOS - ncurses
 
   find_package(Curses REQUIRED)
 

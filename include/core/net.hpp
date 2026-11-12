@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <sys/types.h>
 
 namespace net {
 struct Response {

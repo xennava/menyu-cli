@@ -49,6 +49,18 @@ private:
     int c = tui::Input.getBaseInput();
     if (c >= 'A' && c <= 'Z')
       key.shift = 1;
+#ifdef _WIN32
+    if (c == 0 || c == 224) {
+      if (keys[72])
+        key.ArrowUp = true;
+      if (keys[80])
+        key.ArrowDown = true;
+      if (keys[75])
+        key.ArrowLeft = true;
+      if (keys[77])
+        key.ArrowRight = true;
+    }
+#else
     if (c == 27) {
       key.alt = true;
       if (keys[91]) {
@@ -70,14 +82,14 @@ private:
       key.tab = true;
     if (c == 10)
       key.enter = true;
-
+#endif
     alphabetParse();
   }
 
 public:
   AppInput() { keys = tui::Input.getKeys(); }
 
-  const bool process();
+  bool process();
   const Key &getKey() { return key; }
 };
 
