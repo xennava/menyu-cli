@@ -32,6 +32,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
   # Windows / MinGW compatibility
   if(WIN32)
+    if(MSVC)
+      target_compile_options(menu PRIVATE /utf-8)
+      set_property(TARGET menu PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
+
     target_compile_options(menu PRIVATE
             -Wno-error=sign-compare
         )
