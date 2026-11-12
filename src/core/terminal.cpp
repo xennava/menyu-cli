@@ -146,7 +146,7 @@ void puts(int x, int y, std::string_view str) {
   }
 }
 
-void puts_n(int x, int y, int n, std::string_view str) {
+void puts_n(int x, int y, size_t n, std::string_view str) {
   if (str.empty() || n > str.size() - 1)
     return;
   if (basic::vec2itoIdx(x, y) + n > screenExtent.size)

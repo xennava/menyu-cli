@@ -7,6 +7,7 @@
 #include "order.hpp"
 #include "ui.hpp"
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <pages.hpp>
 #include <string>
@@ -100,7 +101,7 @@ void mainMenuPage() {
   listProp.maxElement = productCategoryStr.size();
 
   listProp.marker.selectedElement = categorySelectedIndex;
-  for (int i = 0; i < productCategoryStr.size(); i++)
+  for (std::size_t i = 0; i < productCategoryStr.size(); i++)
     ui::list(viewKategori, i, productCategoryStr.at(i).c_str(), listProp);
 
   viewMenu.render();
@@ -111,7 +112,7 @@ void mainMenuPage() {
   listProp.maxElement = 3;
   listProp.marker.selectedElement = menuSelectedIndex;
 
-  for (int i = 0; i < 3; i++)
+  for (std::size_t i = 0; i < 3; i++)
     ui::list(viewMenu, i,
              productItems[i + categorySelectedIndex * 3].nama.c_str(),
              listProp);
@@ -196,7 +197,7 @@ void updateOrderMessage() {
   static int elapsed = 0;
   static int dotsElapsed = 0;
   static int8_t idx = 0;
-  static int8_t didx = 1;
+  static std::size_t didx = 1;
 
   elapsed += app::time::targetFrameTime;
   dotsElapsed += app::time::targetFrameTime;
@@ -265,7 +266,7 @@ void orderPage() {
   listProp.marker.gap = 3;
   listProp.maxElement = order.items.size();
   listProp.marker.selectedElement = 0;
-  int i = 0;
+  std::size_t i = 0;
 
   std::string orderList("");
   for (const auto &[key, orderItem] : order.items) {

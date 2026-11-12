@@ -15,7 +15,8 @@
 Payment payment;
 Order order;
 
-MenuItem currentItem = {.category = 0};
+MenuItem currentItem = {
+    .nama = "", .description = "", .price = 0, .id = 0, .category = 0};
 int qty = 1;
 
 std::unordered_set<int> unavailableId;
@@ -116,7 +117,7 @@ void updateOrderWarnMessage() {
   orderWarnMessageDuration += app::time::targetFrameTime;
 
   std::string cstr;
-  static int i = 0;
+  static std::size_t i = 0;
   if (order.isOrdered()) {
     i = pesanManis.size() - 1;
     cstr.assign(pesanManis.at(i));
@@ -179,7 +180,7 @@ void Order::readOrder() {
   if (!file)
     return;
 
-  for (int i = 0; i < n; i++) {
+  for (std::size_t i = 0; i < n; i++) {
     OrderItem v{};
 
     file.read(reinterpret_cast<char *>(&v), sizeof(OrderItem));

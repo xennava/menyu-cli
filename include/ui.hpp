@@ -2,6 +2,7 @@
 
 #include "core/type.hpp"
 #include <core/terminal.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -56,7 +57,7 @@ private:
   } modes;
 
   uint8_t uid = 0;
-  void initContent(vec2i x) { measurement.padding.all(1); }
+  // void initContent(vec2i x) { measurement.padding.all(1); }
 
 public:
   struct {
@@ -116,7 +117,7 @@ public:
       tui::puts(measurement.x + 1, measurement.y, title.str);
     }
   }
-  const int getID() { return uid; }
+  int getID() { return uid; }
 };
 
 class Text {
@@ -216,7 +217,7 @@ public:
     contentPos.y = originPos.y + padding.top;
     // contentPos.x = calculatedPos.x + padding.left;
 
-    int n = viewContentExtent.width;
+    std::size_t n = viewContentExtent.width;
     if (str.size() > n) {
       n -= 3 + padding.right;
       tui::puts(contentPos.x + n - 1, contentPos.y, "...");
@@ -259,7 +260,8 @@ extern void lineSeparator(vec2i orgPosRef, Extent extRef, int width);
 //  0x0 : plain
 //  0x1 : With Auto Marker to all element
 //  0x2 : Auto marker to selected element
-extern void list(View &v, int &i, std::string_view str, ListProperty &lp);
+extern void list(View &v, std::size_t &i, std::string_view str,
+                 ListProperty &lp);
 extern void header(std::string_view str);
 extern void footer(std::string_view str);
 } // namespace ui

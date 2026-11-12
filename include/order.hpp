@@ -102,7 +102,7 @@ public:
   }
   int8_t getOrderStatusIndex() { return static_cast<int8_t>(orderStatus); }
   OrderStatus getOrderStatus() { return orderStatus; }
-  const int getId() { return id; }
+  int getId() { return id; }
   bool isOrdered() { return ordered; }
   const int &getTotalPrice() { return totalPrice; }
 };

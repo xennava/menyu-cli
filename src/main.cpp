@@ -7,7 +7,7 @@
 #include <pages.hpp>
 #include <ratio>
 
-int main(int argc, char *argv[]) {
+int main() {
   FileLock fl;
   if (!fl.acquire()) {
     return 1;

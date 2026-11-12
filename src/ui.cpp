@@ -1,5 +1,6 @@
 #include <core/terminal.hpp>
 #include <core/type.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <ui.hpp>
 
@@ -13,12 +14,12 @@ void box(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
   tui::put(x, my, "└");
   tui::put(mx, my, "┘");
 
-  for (size_t i = 1; i < w - 1; i++) {
+  for (int i = 1; i < w - 1; i++) {
     size_t cx = x + i;
     tui::put(cx, y, "─");
     tui::put(cx, my, "─");
   }
-  for (size_t i = 1; i < h - 1; i++) {
+  for (int i = 1; i < h - 1; i++) {
     uint16_t cy = y + i;
     tui::put(x, cy, "\u2502");
     tui::put(mx, cy, "\u2502");
@@ -87,7 +88,7 @@ void View::makeDefaultActiveView() {
   view::makeUniqueActiveView();
 }
 
-void list(View &v, int &i, std::string_view str, ListProperty &lp) {
+void list(View &v, std::size_t &i, std::string_view str, ListProperty &lp) {
   vec2i xorg = v.getContentOrigin();
   Extent ext = v.getContentExtent();
   xorg.x += lp.margin.left;

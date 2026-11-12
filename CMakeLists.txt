@@ -27,6 +27,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         -Wall
         -Wextra
         -Wpedantic
+        -Werror
     )
 
   # Windows / MinGW compatibility

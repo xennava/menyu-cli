@@ -40,7 +40,7 @@ public:
     int w = termui::display_width(glyph);
     d.width = w;
     while (w > 1) {
-      if (++idx >= static_cast<int>(screenExtent.size))
+      if (++idx >= screenExtent.size)
         return;
       d = cells[idx];
       d.continuation = true;
@@ -48,8 +48,8 @@ public:
     }
   }
   void put(int x, int y, std::string_view glyph) {
-    int idx = basic::vec2itoIdx(x, y);
-    if (idx >= static_cast<int>(screenExtent.size))
+    std::size_t idx = basic::vec2itoIdx(x, y);
+    if (idx >= screenExtent.size)
       return;
     Cell &d = cells[idx];
     d.glyph = glyph;
@@ -64,8 +64,8 @@ public:
     }
   };
   void resize(Extent &ext) { cells.resize(ext.size); }
-  Cell *const data() { return cells.data(); }
-  const int size() { return cells.size(); }
+  Cell *data() { return cells.data(); }
+  int size() { return cells.size(); }
 
   void render(std::string &output) {
     if (cells.size() < 1)
