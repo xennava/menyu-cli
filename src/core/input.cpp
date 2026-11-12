@@ -1,4 +1,5 @@
 #include <core/input.hpp>
+#include <string.h>
 
 namespace tui {
 InputSystem Input;
@@ -29,8 +30,9 @@ int InputSystem::getch() {
 
   if (ret > 0) {
     if (fds[0].revents & POLLIN) {
-      read(STDIN_FILENO, &terminalInputBuffer, sizeof(terminalInputBuffer));
-      return 1;
+      ssize_t bytesRead =
+          read(STDIN_FILENO, &terminalInputBuffer, sizeof(terminalInputBuffer));
+      return bytesRead > 0 ? 1 : 0;
     }
   }
   return 0;

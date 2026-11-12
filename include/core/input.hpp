@@ -1,12 +1,11 @@
 #pragma once
 
-#include <cstring>
 #ifdef _WIN32
 #include <conio.h>
 #else
 #include <poll.h>
-#endif
 #include <unistd.h>
+#endif
 
 namespace tui {
 class InputSystem {
