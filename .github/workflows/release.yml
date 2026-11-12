@@ -3,7 +3,7 @@ name: Build and Release C++
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
@@ -12,16 +12,22 @@ jobs:
   build:
     name: Build (${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # Di Windows, wajib pakai shell 'msys2 {0}' agar memakai GCC & CMake dari MinGW64, bukan MSVC
+        shell: ${{ matrix.shell }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             platform: linux-x64
+            shell: bash
             ext: ""
             archive_ext: tar.gz
           - os: windows-latest
             platform: windows-x64
+            shell: msys2 {0}
             ext: ".exe"
             archive_ext: zip
 
@@ -29,11 +35,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup MSYS2 MinGW-w64 (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
       - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build project
-        run: cmake --build build --config Release
+        run: cmake --build build
 
       - name: Package binary (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -47,7 +64,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist/windows
-          Copy-Item "build/Release/menu.exe" -Destination "dist/windows/"
+          Copy-Item "build/menu.exe" -Destination "dist/windows/"
           Compress-Archive -Path "dist/windows/*" -DestinationPath "menu-${{ github.ref_name }}-${{ matrix.platform }}.zip"
 
       - name: Upload build artifact
