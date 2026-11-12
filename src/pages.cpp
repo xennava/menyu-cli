@@ -56,7 +56,7 @@ void mainMenuInit() {
 }
 
 void mainMenuInput() {
-  if (tui::Input.getBaseInput() == 'x') {
+  if (tui::Input.getKeys()['x']) {
     app::orderPage = true;
   }
   int bipolar = appInput.getKey().ArrowRight - appInput.getKey().ArrowLeft;

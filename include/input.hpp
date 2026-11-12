@@ -51,16 +51,16 @@ private:
     if (c >= 'A' && c <= 'Z')
       key.type.shift = 1;
 #ifdef _WIN32
-    if (c == 0 || c == 224) {
-      if (keys[72])
-        key.type.ArrowUp = true;
-      if (keys[80])
-        key.type.ArrowDown = true;
-      if (keys[75])
-        key.type.ArrowLeft = true;
-      if (keys[77])
-        key.type.ArrowRight = true;
-    }
+    if (keys[72])
+      key.type.ArrowUp = true;
+    if (keys[80])
+      key.type.ArrowDown = true;
+    if (keys[75])
+      key.type.ArrowLeft = true;
+    if (keys[77])
+      key.type.ArrowRight = true;
+    if (keys[13])
+      key.type.enter = true;
 #else
     if (c == 27) {
       key.type.alt = true;
@@ -88,10 +88,7 @@ private:
   }
 
 public:
-  AppInput() {
-    if (tui::Input.getKeys())
-      keys = tui::Input.getKeys();
-  }
+  AppInput() { keys = tui::Input.getKeys(); }
 
   bool process();
   const Type &getKey() { return key.type; }

@@ -6,6 +6,9 @@
 #include <iostream>
 #include <pages.hpp>
 #include <ratio>
+#ifdef _WIN32
+#include <thread>
+#endif
 
 int main() {
   FileLock fl;
@@ -51,6 +54,9 @@ int main() {
 
     tui::render();
     tui::show();
+#ifdef _WIN32
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+#endif
   }
 #ifndef NDEBUG
   for (const auto &c : ui::view::viewRef) {

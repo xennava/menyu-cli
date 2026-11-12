@@ -22,10 +22,25 @@ bool hasInit = false;
 
 int pointerIndex = 0;
 
-void setTerminalMode(int enableRaw) {
 #ifdef _WIN32
+bool enableVirtualTerminal() {
+  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  DWORD mode = 0;
+
+  if (!GetConsoleMode(hOut, &mode))
+    return false;
+
+  mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  mode |= DISABLE_NEWLINE_AUTO_RETURN;
+
+  return SetConsoleMode(hOut, mode);
+}
+void setTerminalMode(int enableRaw) {
   (void)enableRaw;
   HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+  enableVirtualTerminal();
+
   CONSOLE_CURSOR_INFO cursorInfo;
   GetConsoleCursorInfo(hOut, &cursorInfo);
   cursorInfo.bVisible = FALSE;
@@ -33,6 +48,7 @@ void setTerminalMode(int enableRaw) {
   SetConsoleOutputCP(CP_UTF8);
   SetConsoleCP(CP_UTF8);
 #else
+void setTerminalMode(int enableRaw) {
   struct termios t;
   tcgetattr(0, &t);
 
