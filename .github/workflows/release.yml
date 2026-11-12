@@ -1,0 +1,75 @@
+name: Build and Release C++
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-x64
+            ext: ""
+            archive_ext: tar.gz
+          - os: windows-latest
+            platform: windows-x64
+            ext: ".exe"
+            archive_ext: zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build project
+        run: cmake --build build --config Release
+
+      - name: Package binary (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist/linux
+          cp build/menu dist/linux/
+          tar -czvf menu-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz -C dist/linux .
+
+      - name: Package binary (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/windows
+          Copy-Item "build/Release/menu.exe" -Destination "dist/windows/"
+          Compress-Archive -Path "dist/windows/*" -DestinationPath "menu-${{ github.ref_name }}-${{ matrix.platform }}.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: menu-${{ github.ref_name }}-${{ matrix.platform }}.${{ matrix.archive_ext }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: artifacts/*
